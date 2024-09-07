@@ -51,18 +51,25 @@ function processarXml() {
             console.error("Erro ao ler o arquivo XML:", err);
             return;
         }
-        
-        xml2js.parseString(data, (err, result) => {
+
+        xml2js.parseString(data, { explicitArray: true, mergeAttrs: true }, (err, result) => {
             if (err) {
                 console.error("Erro ao parsear o XML:", err);
                 return;
             }
+
             try {
-                // Converte XML para formato JSON
-                const dados = result.root.row.map(r => ({
-                    dia: parseInt(r.dia[0]),
-                    valor: parseFloat(r.valor[0])
+                // Log da estrutura do XML para depuração
+                console.log(JSON.stringify(result, null, 2));
+
+                // Acessa os dados do XML
+                // Ajustar conforme a estrutura real retornada pelo XML
+                const rows = result.root.row; // Ajuste isso conforme o log do JSON
+                const dados = rows.map(r => ({
+                    dia: parseInt(r.dia),
+                    valor: parseFloat(r.valor)
                 }));
+
                 processarFaturamento(dados);
             } catch (e) {
                 console.error("Erro ao processar dados do XML:", e);
