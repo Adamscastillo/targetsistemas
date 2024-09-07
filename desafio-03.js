@@ -1,19 +1,12 @@
-/* Dado um vetor que guarda o valor de faturamento diário de uma distribuidora,
-faça um programa, na linguagem que desejar, que calcule e retorne:
-• O menor valor de faturamento ocorrido em um dia do mês;
-• O maior valor de faturamento ocorrido em um dia do mês;
-• Número de dias no mês em que o valor de faturamento diário foi superior à média mensal.
- */
-
 const fs = require('fs');
-const { DOMParser } = require('xmldom');
+const xml2js = require('xml2js');
 
 // Função para processar dados de faturamento
 function processarFaturamento(dados) {
     // Filtra os dados para remover dias sem faturamento
     const faturamentos = dados.filter(d => d.valor > 0);
 
-    if (faturamentos.length == 0) {
+    if (faturamentos.length === 0) {
         console.log("Não há dados de faturamento disponíveis.");
         return;
     }
@@ -59,22 +52,25 @@ function processarXml() {
             return;
         }
         
-        try {
-            const doc = new DOMParser().parseFromString(data, 'text/xml');
-            const rows = doc.getElementsByTagName('row');
-            
-            const dados = Array.from(rows).map(row => ({
-                dia: parseInt(row.getElementsByTagName('dia')[0].textContent),
-                valor: parseFloat(row.getElementsByTagName('valor')[0].textContent)
-            }));
-            
-            processarFaturamento(dados);
-        } catch (e) {
-            console.error("Erro ao processar dados do XML:", e);
-        }
+        xml2js.parseString(data, (err, result) => {
+            if (err) {
+                console.error("Erro ao parsear o XML:", err);
+                return;
+            }
+            try {
+                // Converte XML para formato JSON
+                const dados = result.root.row.map(r => ({
+                    dia: parseInt(r.dia[0]),
+                    valor: parseFloat(r.valor[0])
+                }));
+                processarFaturamento(dados);
+            } catch (e) {
+                console.error("Erro ao processar dados do XML:", e);
+            }
+        });
     });
 }
 
 // Escolha qual função usar para processar JSON ou XML
-processarJson(); // Para processar JSON
-// processarXml(); // Para processar XML
+//processarJson(); // Para processar JSON
+ processarXml(); // Para processar XML
